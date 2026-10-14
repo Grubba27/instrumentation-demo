@@ -1,0 +1,47 @@
+{
+  "name": "instrumentation-demo",
+  "private": true,
+  "scripts": {
+    "start": "meteor run --port 3600",
+    "start:otel": "OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 meteor run --port 3600",
+    "check-types": "meteor types && tsc --noEmit",
+    "test": "meteor test --once --driver-package meteortesting:mocha",
+    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.23.5",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.223.0",
+    "@opentelemetry/resources": "^2.12.0",
+    "@opentelemetry/sdk-trace-base": "^2.12.0",
+    "@swc/helpers": "^0.5.23",
+    "meteor-node-stubs": "^1.2.30",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@meteorjs/rspack": "^3.0.0-beta.3",
+    "@rsdoctor/rspack-plugin": "^1.6.4",
+    "@rspack/cli": "^2.2.7",
+    "@rspack/core": "^2.2.7",
+    "@rspack/dev-server": "^2.2.1",
+    "@rspack/plugin-react-refresh": "^2.0.2",
+    "@swc/core": "^1.16.2",
+    "@types/mocha": "^8.2.3",
+    "@types/node": "^22.10.6",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "react-refresh": "^0.19.0",
+    "ts-checker-rspack-plugin": "^1.5.2",
+    "typescript": "^7.0.2"
+  },
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.tsx",
+      "server": "server/main.ts"
+    },
+    "testModule": "tests/main.ts",
+    "modern": true
+  }
+}
