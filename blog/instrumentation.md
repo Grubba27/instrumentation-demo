@@ -50,7 +50,7 @@ Instrumentation.configure({
 });
 ```
 
-The events are typed. In an app that uses the native types. A misspelled event name fails the type-checker, and `event.error` exists only on the events that have one.
+In an app that uses the native types, a misspelled event name fails the type-checker, and `event.error` exists only on the events that have one.
 
 With that detail noted, we can get started with some fun:
 
@@ -114,7 +114,7 @@ Inside a method or a publication, it returns the IDs of the call that is running
 
 Search for that ID (your needle), and you get the whole story of one call.
 
-A `traceId` names one invocation. If `orders.create` called a second method; that method would have received an ID of its own.
+A `traceId` names one invocation. If `orders.create` called a second method, that method would receive an ID of its own.
 
 ## Keep an audit trail without storing secrets
 
@@ -209,7 +209,7 @@ export const viewersOf = (publication: string) => viewers.get(publication)?.size
 
 A connection is one browser tab, and a user is whoever is logged in on it. Meteor restarts a connection's publications on login and logout, so the latest `publication.start` always carries its current user.
 
-A page is whatever a publication feeds. Everyone subscribed to `orders.recent` is looking at the orders list, so `viewersOf('orders.recent')` is the number of people on that page.
+A page is whatever a publication feeds. Everyone subscribed to `orders.recent` is looking at the orders list, so `viewersOf('orders.recent')` is the number of tabs open on that page.
 
 Here are two browsers on the demo, one of them logged in:
 
