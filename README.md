@@ -24,6 +24,7 @@ watch both the page and the terminal.
 | `trace-log.ts` | `currentContext()` stamps your own log lines with the `traceId` |
 | `audit.ts` | `configureMethod` keeps a card number out of the audit trail |
 | `connections.ts` | Live connection and subscription counts, time to ready |
+| `presence.ts` | How many users are online, and how many viewers each publication has |
 | `anomalies.ts` | A server-only method reached through a client connection |
 | `otel.ts` | One OpenTelemetry span per method call and per subscription |
 | `live-feed.ts` | Streams all nine event types to the dashboard |

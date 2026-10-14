@@ -44,11 +44,15 @@ h1 { margin: 0; font-size: 22px; }
 header p { margin: 4px 0 0; color: var(--muted); }
 h2 { margin: 20px 0 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 
-.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; }
 .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
 .tile strong { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
 .tile span { color: var(--muted); }
 .tile.bad strong { color: var(--bad); }
+
+.viewers { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; color: var(--muted); }
+.chip { padding: 4px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.chip code { margin-right: 6px; color: var(--muted); }
 
 .columns { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
 main { min-width: 0; }

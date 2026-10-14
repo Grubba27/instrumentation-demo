@@ -4,6 +4,7 @@ import './method-stats';
 import './trace-log';
 import './audit';
 import './connections';
+import './presence';
 import './anomalies';
 import './otel';
 import './live-feed';

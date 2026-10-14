@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { useFind, useSubscribe, useTracker } from 'meteor/react-meteor-data';
 import { AuditLog, Orders } from '/imports/api/orders';
 import { DEMO_USER } from '/imports/api/demo-user';
-import { FeedEvents, LiveGauges, MethodStats } from './live';
+import { FeedEvents, LiveGauges, LiveViewers, MethodStats } from './live';
 import { EventFeed } from './EventFeed';
 
 const CUSTOMERS = ['Ada', 'Grace', 'Linus', 'Margaret', 'Dennis', 'Barbara'];
@@ -24,11 +24,13 @@ export const App = () => {
   const gauges = useTracker(() => LiveGauges.findOne('server'), []);
   const stats = useFind(() => MethodStats.find({}, { sort: { totalMs: -1 } }), []);
   const events = useFind(() => FeedEvents.find({}, { sort: { seq: -1 }, limit: 40 }), []);
+  const viewers = useFind(() => LiveViewers.find({ count: { $gt: 0 } }, { sort: { count: -1, _id: 1 } }), []);
   const audit = useFind(() => AuditLog.find({}, { sort: { at: -1 } }), []);
   const orders = useFind(() => Orders.find({}, { sort: { createdAt: -1 }, limit: 5 }), []);
 
   const calls = stats.reduce((sum, stat) => sum + stat.count, 0);
   const errors = stats.reduce((sum, stat) => sum + stat.errors, 0);
+  const viewingOrders = viewers.find((entry) => entry._id === 'orders.recent')?.count ?? 0;
 
   const call = async (name: string, ...args: unknown[]) => {
     try {
@@ -77,9 +79,19 @@ export const App = () => {
 
       <section className="tiles">
         <Tile label="Connections" value={gauges?.connections ?? 0} />
+        <Tile label="Users online" value={gauges?.users ?? 0} />
         <Tile label="Open subscriptions" value={gauges?.subscriptions ?? 0} />
         <Tile label="Method calls" value={calls} />
         <Tile label="Failed calls" value={errors} tone={errors ? 'bad' : undefined} />
+      </section>
+
+      <section className="viewers">
+        <span>Viewing now</span>
+        {viewers.map((entry) => (
+          <span className="chip" key={entry._id}>
+            <code>{entry._id}</code> {entry.count}
+          </span>
+        ))}
       </section>
 
       <div className="columns">
@@ -105,7 +117,7 @@ export const App = () => {
 
           {showOrders && (
             <>
-              <h2>orders.recent</h2>
+              <h2>orders.recent · {viewingOrders} viewing</h2>
               <ul className="orders">
                 {orders.map((order) => (
                   <li key={order._id}>

@@ -27,4 +27,10 @@ export interface Gauges {
   _id: string;
   connections: number;
   subscriptions: number;
+  users: number;
+}
+
+export interface Viewers {
+  _id: string;
+  count: number;
 }

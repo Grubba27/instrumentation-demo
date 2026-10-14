@@ -2,6 +2,7 @@ import { Meteor, type Subscription } from 'meteor/meteor';
 import { Instrumentation } from 'meteor/instrumentation';
 import { stats } from './method-stats';
 import { live } from './connections';
+import { publications, usersOnline, viewersOf } from './presence';
 
 // Streams the event feed to the dashboard through the low-level publish API,
 // so nothing is written to MongoDB.
@@ -15,20 +16,26 @@ const TYPES: Instrumentation.EventType[] = [
 
 const subscribers = new Set<Subscription>();
 const recent: { id: string; fields: Record<string, unknown> }[] = [];
-const knownStats = new Set<string>();
+const known = { stats: new Set<string>(), viewers: new Set<string>() };
 let sequence = 0;
 
-function publishNumbers() {
-  for (const sub of subscribers) sub.changed('live.gauges', 'server', { ...live });
+const gauges = () => ({ ...live, users: usersOnline() });
+// Meteor's own publications are not pages anyone is looking at.
+const pages = () => publications().filter((name) => !name.startsWith('meteor'));
 
-  for (const [name, stat] of stats) {
-    const isNew = !knownStats.has(name);
-    knownStats.add(name);
-    for (const sub of subscribers) {
-      if (isNew) sub.added('live.stats', name, { ...stat });
-      else sub.changed('live.stats', name, { ...stat });
-    }
+function upsert(collection: 'stats' | 'viewers', id: string, fields: Record<string, unknown>) {
+  const isNew = !known[collection].has(id);
+  known[collection].add(id);
+  for (const sub of subscribers) {
+    if (isNew) sub.added(`live.${collection}`, id, fields);
+    else sub.changed(`live.${collection}`, id, fields);
   }
+}
+
+function publishNumbers() {
+  for (const sub of subscribers) sub.changed('live.gauges', 'server', gauges());
+  for (const [name, stat] of stats) upsert('stats', name, { ...stat });
+  for (const name of pages()) upsert('viewers', name, { count: viewersOf(name) });
 }
 
 function publishEvent(event: Instrumentation.Event) {
@@ -52,10 +59,14 @@ TYPES.forEach((type) => Instrumentation.on(type, publishEvent));
 
 Meteor.publish('live.feed', function () {
   for (const entry of recent) this.added('live.events', entry.id, entry.fields);
-  this.added('live.gauges', 'server', { ...live });
+  this.added('live.gauges', 'server', gauges());
   for (const [name, stat] of stats) {
-    knownStats.add(name);
+    known.stats.add(name);
     this.added('live.stats', name, { ...stat });
+  }
+  for (const name of pages()) {
+    known.viewers.add(name);
+    this.added('live.viewers', name, { count: viewersOf(name) });
   }
 
   subscribers.add(this);
