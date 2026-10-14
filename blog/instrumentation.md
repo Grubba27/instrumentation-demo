@@ -1,12 +1,12 @@
 # How to see what your Meteor server is doing
 
-How long does `orders.create` take? Which publication is failing? How many clients are trying to connect right now?
+How long does `orders.create` take? Which publication is failing? How many clients are connected?
 
 In version 3.6, Meteor ships a package that can help you answer those questions. With `instrumentation`, you can check every method call, every publication, and every DDP connection.
 
-Before having this package to get those numbers, we had to wrap Meteor's internals. It was common to see timers patched method handlers and DDP sessions, and each one had to keep up with core changes on its own.
+Before having this package to get those numbers, we had to wrap Meteor's internals. It was common to see patched method handlers and DDP sessions, and each one had to keep up with core changes on its own.
 
-In this blog, we will build a small app to test it out. We will start with a slow report, a method that has a bug, and a refund that takes a card number, and then export this information to OpenTelemetry(this last one I learned with Italo in this [document](https://github.com/meteor/meteor/blob/release-3.6/v3-docs/docs/api/instrumentation.md) 😄
+In this blog, we will build a small app to test it out. We will start with a slow report, a method that has a bug, and a refund that takes a card number, and then export this information to OpenTelemetry(this last one I learned with @dupontbertrand in this [document](https://github.com/meteor/meteor/blob/release-3.6/v3-docs/docs/api/instrumentation.md) 😄)
 
 The app code is on [GitHub](https://github.com/Grubba27/instrumentation-demo).
 
@@ -50,7 +50,7 @@ Instrumentation.configure({
 });
 ```
 
-The events are typed. In an app that uses the native types. A misspelled event name throws an error, and `event.error` exists only on the events that have one.
+The events are typed. In an app that uses the native types. A misspelled event name fails the type-checker, and `event.error` exists only on the events that have one.
 
 With that detail noted, we can get started with some fun:
 
@@ -82,7 +82,7 @@ method failed: orders.import after 2ms (Error: Row 3 is missing the "total" colu
 method failed: orders.recalculate after 39ms (TypeError: Cannot read properties of undefined (reading 'total'))
 ```
 
-The second line is the one I would never have seen. `orders.import` throws a `Meteor.Error`, the kind you throw on purpose so the client can see a message.
+`orders.import` throws a `Meteor.Error`, the kind you throw on purpose so the client can see a message.
 
 The third line is a real bug. The browser gets `Internal server error [500]` and no more. The listener gets the error name and message, plus the user, connection, and duration.
 
@@ -94,7 +94,7 @@ Keep running totals in a `Map`, and the same two events become a table of every 
 
 ## Follow one call through your logs
 
-A busy server will have a ton of log lines. To check one out, it is like finding a needle in a haystack, but we have helpers for those cases, in to find which call wrote it, you can call `Instrumentation.currentContext()`; see it in action:
+A busy server will have a ton of log lines. To check one out, it is like finding a needle in a haystack, but we have a helper for those cases. To find which call wrote it, you can call `Instrumentation.currentContext()`; see it in action:
 
 ```ts
 // server/observability/trace-log.ts
@@ -114,7 +114,7 @@ Inside a method or a publication, it returns the IDs of the call that is running
 
 Search for that ID (your needle), and you get the whole story of one call.
 
-A `traceId` names one invocation. Had `orders.create` called a second method; that method would have received an ID of its own.
+A `traceId` names one invocation. If `orders.create` called a second method; that method would have received an ID of its own.
 
 ## Keep an audit trail without storing secrets
 
@@ -127,7 +127,7 @@ Instrumentation.configure({
 });
 ```
 
-In this mode, you will see a preview(no pun intended) of your arguments, a trimmed copy of the real value: strings stop at 200 characters, objects and arrays at 32 entries, and nesting at four levels.
+In this mode, you will see a preview(no pun intended) of your arguments, a trimmed copy of the real value: strings stop at 200 characters, objects and arrays at 32 entries, and nesting at 3 levels.
 
 A preview of a card number is still a card number. In the demo, `orders.refund` receives an order ID, an amount, and a card. I want the first two in my audit log and the card nowhere:
 
@@ -248,7 +248,7 @@ The dashboard in the screenshot shows these counts, the method table, and the ra
 
 ## Send it to OpenTelemetry
 
-The package does not choose a tracing tool for you. You may want to share it around. One of the nicest features we have in the package is the ability to export to OpenTelemetry. OpenTelemetry expects spans: records of one timed operation, each with a start, an end, and a status. A method call fits that exactly:
+The package does not choose a tracing tool for you. You may want to share it around. One of the nicest things to build on top of it is an export to OpenTelemetry. OpenTelemetry expects spans: records of one timed operation, each with a start, an end, and a status. A method call fits that exactly:
 
 ```ts
 // server/observability/otel.ts, methods only
